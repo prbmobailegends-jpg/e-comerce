@@ -8,16 +8,10 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-// HAPUS BAGIAN INI!!! Jangan redirect ke index.php jika keranjang kosong
-// if (empty($_SESSION['cart'])) {
-//     header("Location: index.php");
-//     exit;
-// }
-
 // Inisialisasi variabel
  $cart_items = [];
  $total_harga = 0;
- $shipping_cost = 15000; // Ongkos flat, bisa dihitung dinamis nanti
+ $shipping_cost = 15000; // Ongkos flat
 
 // Siapkan data keranjang HANYA jika ada item di session
 if (!empty($_SESSION['cart'])) {
@@ -52,12 +46,50 @@ if (!empty($_SESSION['cart'])) {
     <title>Keranjang Belanja - Bustore</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        /* ... (Style CSS tetap sama, tidak perlu diubah) ... */
+        /* CSS Utama */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+        }
+
         .cart-container {
             max-width: 1200px;
-            margin: 100px auto 30px;
+            margin: 100px auto 30px; /* Margin top disesuaikan dengan navbar */
             padding: 0 20px;
         }
+        
+        /* --- STYLE BARU: TOMBOL KEMBALI --- */
+        .back-nav {
+            margin-bottom: 20px;
+        }
+        
+        .btn-back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background-color: white;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid #ddd;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-back-home:hover {
+            background-color: #f5f5f5;
+            color: #ff5722;
+            border-color: #ff5722;
+            transform: translateX(-3px);
+        }
+        
+        .btn-back-home svg {
+            width: 18px;
+            height: 18px;
+        }
+        /* ----------------------------------- */
         
         h2 {
             margin-bottom: 30px;
@@ -86,6 +118,7 @@ if (!empty($_SESSION['cart'])) {
             margin-bottom: 15px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             transition: all 0.2s;
+            border: 1px solid #f0f0f0;
         }
         
         .cart-item:hover {
@@ -99,6 +132,7 @@ if (!empty($_SESSION['cart'])) {
             object-fit: cover;
             border-radius: 8px;
             margin-right: 15px;
+            border: 1px solid #eee;
         }
         
         .cart-item-details {
@@ -109,6 +143,7 @@ if (!empty($_SESSION['cart'])) {
             font-weight: 600;
             margin-bottom: 5px;
             color: #333;
+            font-size: 16px;
         }
         
         .cart-item-price {
@@ -128,13 +163,14 @@ if (!empty($_SESSION['cart'])) {
             align-items: center;
             border: 1px solid #ddd;
             border-radius: 4px;
+            overflow: hidden;
         }
         
         .quantity-btn {
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             border: none;
-            background: white;
+            background: #f9f9f9;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -146,7 +182,8 @@ if (!empty($_SESSION['cart'])) {
         }
         
         .quantity-btn:hover {
-            background: #f0f0f0;
+            background: #eee;
+            color: #ff5722;
         }
         
         .quantity-btn.minus {
@@ -158,33 +195,36 @@ if (!empty($_SESSION['cart'])) {
         }
         
         .quantity-value {
-            width: 50px;
+            width: 40px;
             text-align: center;
-            padding: 5px;
             font-weight: 500;
+            font-size: 15px;
         }
         
         .cart-item-subtotal {
             text-align: right;
             margin-left: 15px;
+            min-width: 100px;
         }
         
         .cart-item-subtotal p {
             color: #ff5722;
             font-weight: 600;
             font-size: 1.1rem;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
         
         .remove-item {
-            color: #757575;
-            font-size: 0.9rem;
+            color: #999;
+            font-size: 0.85rem;
             text-decoration: none;
             transition: color 0.2s;
+            display: inline-block;
         }
         
         .remove-item:hover {
-            color: #ff5722;
+            color: #f44336;
+            text-decoration: underline;
         }
         
         .cart-summary {
@@ -201,6 +241,8 @@ if (!empty($_SESSION['cart'])) {
             margin-bottom: 20px;
             color: #333;
             font-size: 1.3rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
         }
         
         .summary-item {
@@ -208,7 +250,8 @@ if (!empty($_SESSION['cart'])) {
             justify-content: space-between;
             margin-bottom: 15px;
             padding-bottom: 15px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f9f9f9;
+            color: #555;
         }
         
         .summary-item:last-of-type {
@@ -217,10 +260,10 @@ if (!empty($_SESSION['cart'])) {
         }
         
         .summary-item.total {
-            font-weight: 600;
+            font-weight: 700;
             font-size: 1.2rem;
-            margin-top: 15px;
-            padding-top: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
             border-top: 2px solid #ff5722;
             color: #ff5722;
         }
@@ -229,7 +272,7 @@ if (!empty($_SESSION['cart'])) {
             width: 100%;
             padding: 15px;
             font-size: 1rem;
-            margin-top: 20px;
+            margin-top: 25px;
             background: #ff5722;
             color: white;
             border: none;
@@ -245,8 +288,10 @@ if (!empty($_SESSION['cart'])) {
         .checkout-btn:hover {
             background: #e64a19;
             transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 87, 34, 0.3);
         }
         
+        /* Empty Cart Style */
         .empty-cart {
             text-align: center;
             padding: 60px 20px;
@@ -256,9 +301,9 @@ if (!empty($_SESSION['cart'])) {
         }
         
         .empty-cart-icon {
-            font-size: 80px;
+            font-size: 60px;
             margin-bottom: 20px;
-            color: #ccc;
+            color: #ddd;
         }
         
         .empty-cart h3 {
@@ -268,22 +313,23 @@ if (!empty($_SESSION['cart'])) {
         
         .empty-cart p {
             color: #666;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
+        /* Alerts */
         .alert {
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
-            background: #e7f9e7;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
         
         .alert-error {
-            background: #ffebee;
-            color: #c62828;
-            border: 1px solid #ffcdd2;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
         
         @media (max-width: 768px) {
@@ -301,13 +347,22 @@ if (!empty($_SESSION['cart'])) {
             }
             
             .cart-item-image {
-                margin-right: 0;
-                margin-bottom: 10px;
+                margin: 0 auto 10px;
+            }
+            
+            .cart-item-quantity {
+                justify-content: center;
+                margin-top: 10px;
             }
             
             .cart-item-subtotal {
                 margin-left: 0;
-                margin-top: 10px;
+                margin-top: 15px;
+                text-align: center;
+            }
+            
+            .remove-item {
+                margin-top: 5px;
             }
         }
     </style>
@@ -316,8 +371,19 @@ if (!empty($_SESSION['cart'])) {
     <?php include 'partials/navbar.php'; ?>
     
     <div class="cart-container">
-        <?php include 'partials/back.php'; ?>
-        
+        <!-- NAVIGASI KEMBALI (Rapih & Mengarah ke Index) -->
+        <div class="back-nav">
+            <a href="index.php" class="btn-back-home">
+                <!-- Icon Panah Kiri -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Kembali ke Beranda
+            </a>
+        </div>
+        <!-- -------------------------------------------- -->
+
         <?php if (isset($_SESSION['success'])): ?>
             <div class="alert">
                 <?= $_SESSION['success'] ?>

@@ -64,6 +64,33 @@ if (isset($_POST['upload'])) {
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+
+        /* --- STYLE TOMBOL KEMBALI --- */
+        .btn-dashboard-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            color: #555;
+            border: 1px solid #e0e0e0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .btn-dashboard-back:hover {
+            background: #f8f9fa;
+            color: #ff5722;
+            border-color: #ff5722;
+            transform: translateX(-3px);
+        }
+        /* ----------------------------- */
+        
         .form-group {
             margin-bottom: 20px;
         }
@@ -118,6 +145,15 @@ if (isset($_POST['upload'])) {
     <?php include '../partials/navbar.php'; ?>
 
     <div class="upload-container">
+        <!-- Tombol Kembali ke Dashboard -->
+        <a href="dashboard.php" class="btn-dashboard-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Kembali ke Dashboard
+        </a>
+
         <h2>Upload Gambar Produk</h2>
         
         <?php if (isset($success)): ?>

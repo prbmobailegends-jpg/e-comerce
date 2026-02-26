@@ -9,6 +9,56 @@ if (!isset($_SESSION['user'])) {
 }
 
  $user_id = $_SESSION['user']['id'];
+
+// Handle profile update
+ $update_success = false;
+ $update_error = '';
+
+if (isset($_POST['update_profile'])) {
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
+    $address = mysqli_real_escape_string($conn, $_POST['address']);
+    
+    // Handle profile picture upload
+    if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] == 0) {
+        $file_name = $_FILES['profile_pic']['name'];
+        $file_tmp = $_FILES['profile_pic']['tmp_name'];
+        $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+        $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
+        
+        if (in_array($file_ext, $allowed_ext)) {
+            $new_file_name = "user_" . $user_id . "_" . time() . "." . $file_ext;
+            $upload_path = "assets/img/profiles/" . $new_file_name;
+            
+            if (move_uploaded_file($file_tmp, $upload_path)) {
+                // Update profile picture in database
+                mysqli_query($conn, "UPDATE users SET profile_pic = '$new_file_name' WHERE id = $user_id");
+            }
+        }
+    }
+    
+    // Update user data
+    $update_query = "UPDATE users SET 
+                     name = '$name', 
+                     email = '$email', 
+                     phone = '$phone', 
+                     address = '$address' 
+                     WHERE id = $user_id";
+    
+    if (mysqli_query($conn, $update_query)) {
+        $update_success = true;
+        // Update session data
+        $_SESSION['user']['name'] = $name;
+        $_SESSION['user']['email'] = $email;
+        $_SESSION['user']['phone'] = $phone;
+        $_SESSION['user']['address'] = $address;
+    } else {
+        $update_error = "Gagal memperbarui profil. Silakan coba lagi.";
+    }
+}
+
+// Get updated user data
  $user = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM users WHERE id = $user_id"));
 ?>
 
@@ -236,6 +286,33 @@ if (!isset($_SESSION['user'])) {
             border-radius: 0 25px 25px 0;
             cursor: pointer;
         }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        
+        .alert-close {
+            margin-left: auto;
+            cursor: pointer;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -246,7 +323,6 @@ if (!isset($_SESSION['user'])) {
                 <label for="profile_pic" class="profile-pic-overlay">
                     <span>📷</span>
                 </label>
-                <input type="file" id="profile_pic" name="profile_pic" style="display: none;">
             </div>
             <h3 class="profile-name"><?= $user['name'] ?></h3>
             <p class="profile-email"><?= $user['email'] ?></p>
@@ -262,25 +338,48 @@ if (!isset($_SESSION['user'])) {
             <!-- Informasi Akun Tab -->
             <div id="info" class="tab-content active">
                 <h3>Informasi Akun</h3>
+                
+                <?php if ($update_success): ?>
+                    <div class="alert alert-success">
+                        <span>✓</span>
+                        <span>Profil berhasil diperbarui!</span>
+                        <span class="alert-close" onclick="this.parentElement.style.display='none'">×</span>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if ($update_error): ?>
+                    <div class="alert alert-error">
+                        <span>✗</span>
+                        <span><?= $update_error ?></span>
+                        <span class="alert-close" onclick="this.parentElement.style.display='none'">×</span>
+                    </div>
+                <?php endif; ?>
+                
                 <form method="post" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="name">Nama Lengkap</label>
-                        <input type="text" id="name" name="name" value="<?= $user['name'] ?>" required>
+                        <input type="text" id="name" name="name" value="<?= htmlspecialchars($user['name']) ?>" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email" id="email" name="email" value="<?= $user['email'] ?>" required>
+                        <input type="email" id="email" name="email" value="<?= htmlspecialchars($user['email']) ?>" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="phone">Nomor Telepon</label>
-                        <input type="tel" id="phone" name="phone" value="<?= $user['phone'] ?>">
+                        <input type="tel" id="phone" name="phone" value="<?= htmlspecialchars($user['phone']) ?>">
                     </div>
                     
                     <div class="form-group">
                         <label for="address">Alamat</label>
-                        <textarea id="address" name="address" rows="4"><?= $user['address'] ?></textarea>
+                        <textarea id="address" name="address" rows="4"><?= htmlspecialchars($user['address']) ?></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profile_pic">Foto Profil</label>
+                        <input type="file" id="profile_pic" name="profile_pic" accept="image/*">
+                        <small style="color: #666; display: block; margin-top: 5px;">Format: JPG, PNG, GIF. Maksimal 2MB.</small>
                     </div>
                     
                     <button type="submit" name="update_profile" class="btn btn-primary">Simpan Perubahan</button>

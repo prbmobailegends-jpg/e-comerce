@@ -714,7 +714,18 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'customer') {
                                 <div class="order-total">Total: Rp <?= number_format($order['total_price'], 0, ',', '.') ?></div>
                                 <div class="order-actions">
                                     <a href="order_detail.php?id=<?= $order['id'] ?>" class="btn btn-primary">Detail</a>
-                                    <a href="#" class="btn btn-secondary" onclick="rateProducts(<?= $order['id'] ?>)">Rating</a>
+                                    
+                                    <!-- PERBAIKAN: Tombol Review Produk -->
+                                    <!-- Loop items agar user bisa review per produk -->
+                                    <?php 
+                                    mysqli_data_seek($order_items, 0);
+                                    while ($item = mysqli_fetch_assoc($order_items)): 
+                                    ?>
+                                        <a href="../review.php?product_id=<?= $item['product_id'] ?>&order_id=<?= $order['id'] ?>" class="btn btn-secondary">
+                                            <i class="fas fa-star"></i> Review Produk
+                                        </a>
+                                    <?php endwhile; ?>
+
                                     <a href="#" class="btn btn-secondary" onclick="buyAgain(<?= $order['id'] ?>)">Beli Lagi</a>
                                 </div>
                             </div>
@@ -776,13 +787,10 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'customer') {
         function trackOrder(orderId) {
             alert('Lacak pengiriman untuk pesanan #' + orderId + '. Fitur ini akan segera tersedia.');
         }
-        
-        function rateProducts(orderId) {
-            window.location.href = '../profile.php#ratings';
-        }
-        
+
         function buyAgain(orderId) {
-            alert('Menambahkan produk dari pesanan #' + orderId + ' ke keranjang. Fitur ini akan segera tersedia.');
+            // Logika beli lagi bisa ditambahkan nanti
+            alert('Fitur Beli Lagi akan segera hadir untuk pesanan #' + orderId);
         }
     </script>
 </body>
